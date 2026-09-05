@@ -1,0 +1,6 @@
+# Development and local logs
+_dev/
+*.log
+*.tmp
+*.bak
+*.deleted
