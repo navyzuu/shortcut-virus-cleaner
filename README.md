@@ -1,5 +1,7 @@
 # shortcut-virus-cleaner
 
+[![CI](https://github.com/navyzuu/shortcut-virus-cleaner/actions/workflows/ci.yml/badge.svg)](https://github.com/navyzuu/shortcut-virus-cleaner/actions/workflows/ci.yml)
+
 A lightweight PowerShell utility to remove Windows shortcut worms (VBS/rundll32/DLL injection variants), restore hidden USB files directly to the drive root, and immunize against reinfection.
 
 ## Features

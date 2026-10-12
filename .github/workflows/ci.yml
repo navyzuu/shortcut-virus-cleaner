@@ -1,0 +1,108 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  lint:
+    name: Lint & Syntax Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Validate PowerShell Scripts Syntax (AST)
+        shell: pwsh
+        run: |
+          $files = @("menu.ps1", "silent.ps1")
+          $hasError = $false
+
+          foreach ($file in $files) {
+            if (-not (Test-Path -Path $file)) {
+              Write-Error "Required file not found: $file"
+              $hasError = $true
+              continue
+            }
+
+            $parseErrors = $null
+            $tokens = $null
+            $ast = [System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path $file), [ref]$tokens, [ref]$parseErrors)
+
+            if ($parseErrors.Count -gt 0) {
+              Write-Error "Syntax errors detected in $file:"
+              foreach ($err in $parseErrors) {
+                Write-Error "  Line $($err.Extent.StartLineNumber), Col $($err.Extent.StartColumnNumber): $($err.Message)"
+              }
+              $hasError = $true
+            } else {
+              Write-Host "✓ Syntax check passed: $file"
+            }
+          }
+
+          if ($hasError) {
+            exit 1
+          }
+
+      - name: Run PSScriptAnalyzer
+        shell: pwsh
+        run: |
+          if (-not (Get-Module -ListAvailable -Name PSScriptAnalyzer)) {
+            Install-Module -Name PSScriptAnalyzer -Force -Scope CurrentUser -SkipPublisherCheck
+          }
+          Import-Module PSScriptAnalyzer
+          $results = Invoke-ScriptAnalyzer -Path @("menu.ps1", "silent.ps1") -Severity Error
+          if ($results) {
+            $results | Format-Table -AutoSize
+            exit 1
+          }
+          Write-Host "✓ PSScriptAnalyzer passed with no errors."
+
+  package:
+    name: Package Artifact
+    needs: [lint]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Create Zip Package
+        shell: pwsh
+        run: |
+          $items = @(
+            "menu.ps1",
+            "silent.ps1",
+            "run.bat",
+            "run-silent.bat",
+            "LICENSE",
+            "README.md"
+          )
+          foreach ($item in $items) {
+            if (-not (Test-Path $item)) {
+              Write-Error "Packaging item missing: $item"
+              exit 1
+            }
+          }
+          Compress-Archive -Path $items -DestinationPath "shortcut-virus-cleaner.zip" -Force
+          Write-Host "✓ Created shortcut-virus-cleaner.zip"
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: shortcut-virus-cleaner
+          path: shortcut-virus-cleaner.zip
+
+      - name: Release to GitHub Releases
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: shortcut-virus-cleaner.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

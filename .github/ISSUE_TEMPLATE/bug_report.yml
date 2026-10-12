@@ -1,0 +1,67 @@
+name: Bug Report
+description: File a bug report to help improve shortcut-virus-cleaner
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report an issue! Please provide as much detail as possible to help reproduce and resolve it.
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug Description
+      description: A clear and concise description of what the bug is.
+      placeholder: Describe what happened...
+    validations:
+      required: true
+  - type: dropdown
+    id: script-used
+    attributes:
+      label: Script / Launcher Used
+      description: Which script or launcher were you using when the issue occurred?
+      options:
+        - "menu.ps1 / run.bat (Interactive)"
+        - "silent.ps1 / run-silent.bat (Express 1-Click)"
+        - "Remote execution (irm ... | iex)"
+        - "Other"
+    validations:
+      required: true
+  - type: dropdown
+    id: os-version
+    attributes:
+      label: Windows Version
+      description: What version of Windows are you running?
+      options:
+        - "Windows 11"
+        - "Windows 10"
+        - "Windows 8.1 / 8"
+        - "Windows 7"
+        - "Windows Server"
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      description: Steps to reproduce the behavior.
+      placeholder: |
+        1. Insert infected USB drive (e.g., drive E:)
+        2. Run 'run.bat' as Administrator
+        3. Select Option 1
+        4. See error...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: A clear and concise description of what you expected to happen.
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Console Output / Logs / Screenshots
+      description: Paste any PowerShell terminal errors or attach screenshots if applicable.
+      render: shell
